@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ডুও পড — একসাথে অভ্যাস গড়ুন</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Baloo+Da+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- Diagnostic banner: catches any script error (e.g. blocked CDN, syntax
+     error) and shows it on-screen instead of leaving a blank/frozen page.
+     Plain inline script — runs immediately, independent of the ES modules. -->
+<div id="global-error-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:#E0304A;color:#fff;font-family:sans-serif;font-size:13px;padding:10px 14px;
+  line-height:1.5;word-break:break-word;"></div>
+<script>
+  function duopodShowError(msg) {
+    var el = document.getElementById("global-error-banner");
+    if (!el) return;
+    el.style.display = "block";
+    el.textContent = "একটি টেকনিক্যাল সমস্যা হয়েছে: " + msg;
+  }
+  window.addEventListener("error", function (e) {
+    duopodShowError(e.message || "স্ক্রিপ্ট লোড করা যায়নি।");
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    duopodShowError((e.reason && e.reason.message) || String(e.reason));
+  });
+</script>
+
+<!-- ============ ONBOARDING: FIREBASE CONFIG ============ -->
+<div id="onboarding-modal" class="overlay-screen">
+  <div class="onboarding-card">
+    <div class="onboarding-icon">🔥</div>
+    <h1>ডুও পড সেটআপ করুন</h1>
+    <p class="muted">শুরু করতে আপনার Firebase প্রজেক্টের কনফিগারেশন (JSON) নিচে বসান। এটি শুধুমাত্র আপনার ব্রাউজারে সংরক্ষিত থাকবে।</p>
+    <textarea id="firebase-config-input" rows="8" placeholder='{
+  "apiKey": "...",
+  "authDomain": "...",
+  "projectId": "...",
+  "storageBucket": "...",
+  "messagingSenderId": "...",
+  "appId": "..."
+}'></textarea>
+    <p id="onboarding-error" class="error-text" hidden></p>
+    <button id="onboarding-submit" class="btn-primary">সংযুক্ত করুন</button>
+    <p class="hint">Firebase কনসোল থেকে প্রোজেক্ট সেটিংস → জেনারেল → SDK কনফিগারেশনে গিয়ে এই তথ্য পাবেন।</p>
+  </div>
+</div>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="auth-screen" class="overlay-screen" hidden>
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="brand-dot coral"></span><span class="brand-dot cyan"></span>
+      <h1>ডুও পড</h1>
+    </div>
+    <p class="muted">একসাথে অভ্যাস গড়ুন, একসাথে এগিয়ে যান।</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-authtab="login">লগ ইন</button>
+      <button class="auth-tab" data-authtab="signup">নতুন অ্যাকাউন্ট</button>
+    </div>
+
+    <form id="login-form" class="auth-form">
+      <label>ইমেইল</label>
+      <input type="email" id="login-email" required autocomplete="email" />
+      <label>পাসওয়ার্ড</label>
+      <input type="password" id="login-password" required autocomplete="current-password" />
+      <p class="error-text" id="login-error" hidden></p>
+      <button type="submit" class="btn-primary">লগ ইন করুন</button>
+    </form>
+
+    <form id="signup-form" class="auth-form" hidden>
+      <label>আপনার নাম</label>
+      <input type="text" id="signup-name" required autocomplete="name" />
+      <label>ইমেইল</label>
+      <input type="email" id="signup-email" required autocomplete="email" />
+      <label>পাসওয়ার্ড</label>
+      <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
+      <p class="error-text" id="signup-error" hidden></p>
+      <button type="submit" class="btn-primary">অ্যাকাউন্ট তৈরি করুন</button>
+    </form>
+
+    <button id="reset-config-link" class="link-btn">Firebase কনফিগ পরিবর্তন করুন</button>
+  </div>
+</div>
+
+<!-- ============ MAIN APP SHELL ============ -->
+<div id="app-shell" hidden>
+
+  <header id="app-header">
+    <div class="header-left">
+      <span id="sync-dot" class="sync-dot" title="লাইভ সিঙ্ক"></span>
+      <div class="streak-badge">
+        <span class="flame">🔥</span>
+        <span id="streak-count-header">০ দিন</span>
+      </div>
+    </div>
+    <div class="header-title">একসাথে</div>
+    <button id="settings-icon-btn" class="icon-btn" aria-label="সেটিংস">⚙️</button>
+  </header>
+
+  <main id="main-content">
+
+    <!-- ---------- DASHBOARD ---------- -->
+    <section id="dashboard-screen" class="screen active">
+
+      <div class="card arc-card">
+        <div class="arc-wrap">
+          <svg id="progress-arc-svg" viewBox="0 0 200 200"></svg>
+          <div class="arc-center">
+            <div id="arc-percent">০%</div>
+            <div class="arc-sub">আজকের লক্ষ্য</div>
+          </div>
+        </div>
+        <div class="arc-label" id="arc-label-text">আজকের সার্বিক লক্ষ্য</div>
+        <div class="pod-legend">
+          <span class="legend-item"><i class="dot coral"></i><span id="legend-me-name">আমি</span></span>
+          <span class="legend-item"><i class="dot cyan"></i><span id="legend-partner-name">পার্টনার</span></span>
+        </div>
+      </div>
+
+      <div id="widget-grid" class="widget-grid"></div>
+
+      <div id="empty-habits-state" class="empty-state" hidden>
+        <div class="empty-emoji">🌱</div>
+        <p>এখনো কোনো লক্ষ্য যোগ করা হয়নি।<br>নতুন লক্ষ্য তৈরি করে শুরু করুন।</p>
+      </div>
+    </section>
+
+    <!-- ---------- INSIGHTS ---------- -->
+    <section id="insights-screen" class="screen">
+      <div class="card gauge-card">
+        <canvas id="health-gauge" width="320" height="200"></canvas>
+        <div class="gauge-value">
+          <div id="gauge-score">০</div>
+          <div id="gauge-label" class="gauge-status">শুরু করুন</div>
+        </div>
+      </div>
+
+      <div class="stat-badges">
+        <div class="stat-badge">
+          <div class="stat-icon">⭐</div>
+          <div id="stat-best-streak" class="stat-value">০</div>
+          <div class="stat-label">সর্বোচ্চ ধারা</div>
+        </div>
+        <div class="stat-badge">
+          <div class="stat-icon">🤝</div>
+          <div id="stat-days-together" class="stat-value">০</div>
+          <div class="stat-label">একসাথে যাত্রা</div>
+        </div>
+        <div class="stat-badge">
+          <div class="stat-icon">🔥</div>
+          <div id="stat-current-streak" class="stat-value">০</div>
+          <div class="stat-label">বর্তমান ধারা</div>
+        </div>
+      </div>
+
+      <div class="card sync-week-card">
+        <div class="sync-week-title">এই সপ্তাহের সিঙ্ক</div>
+        <div id="sync-week-row" class="sync-week-row"></div>
+        <div class="sync-week-legend">
+          <span class="legend-item"><i class="half-dot coral"></i>আমার সম্পন্ন</span>
+          <span class="legend-item"><i class="half-dot cyan"></i>পার্টনারের সম্পন্ন</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SETTINGS ---------- -->
+    <section id="settings-screen" class="screen">
+      <div class="card profile-card">
+        <div id="profile-avatar" class="avatar">?</div>
+        <div id="profile-name" class="profile-name">—</div>
+        <div id="profile-email" class="muted">—</div>
+      </div>
+
+      <div class="card">
+        <div class="settings-row-title">পড অবস্থা</div>
+        <div id="pod-status-text" class="pod-status">লোড হচ্ছে…</div>
+
+        <div id="pairing-actions">
+          <div class="invite-block">
+            <div class="settings-row-title small">আপনার আমন্ত্রণ কোড</div>
+            <div class="invite-code-row">
+              <span id="invite-code-display">——————</span>
+              <button id="copy-invite-btn" class="btn-secondary small">কপি করুন</button>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="join-block">
+            <div class="settings-row-title small">পার্টনারের কোড দিয়ে যুক্ত হন</div>
+            <div class="join-code-row">
+              <input type="text" id="join-code-input" maxlength="6" placeholder="৬-সংখ্যার কোড" />
+              <button id="join-code-btn" class="btn-secondary small">যুক্ত হন</button>
+            </div>
+            <p class="error-text" id="join-error" hidden></p>
+          </div>
+        </div>
+
+        <button id="leave-pod-btn" class="btn-danger" hidden>পড থেকে বিচ্ছিন্ন হন</button>
+      </div>
+
+      <button id="logout-btn" class="btn-secondary">লগ আউট করুন</button>
+    </section>
+
+  </main>
+
+  <nav id="tab-bar">
+    <button class="tab-btn active" data-tab="dashboard">
+      <span class="tab-icon">🏠</span><span>একসাথে</span>
+    </button>
+    <button class="tab-btn" data-tab="insights">
+      <span class="tab-icon">📈</span><span>ইনসাইটস</span>
+    </button>
+    <button class="tab-btn" data-tab="settings">
+      <span class="tab-icon">⚙️</span><span>সেটিংস</span>
+    </button>
+  </nav>
+
+  <button id="add-goal-fab" aria-label="নতুন লক্ষ্য">+</button>
+</div>
+
+<!-- ============ GOAL CREATION MODAL ============ -->
+<div id="goal-modal" class="modal-overlay" hidden>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h2>নতুন লক্ষ্য</h2>
+
+    <div id="preset-grid" class="preset-grid"></div>
+
+    <div class="divider"></div>
+    <div class="settings-row-title small">কাস্টম লক্ষ্য</div>
+
+    <label>লক্ষ্যের নাম</label>
+    <input type="text" id="custom-goal-name" placeholder="যেমনঃ যোগব্যায়াম" />
+
+    <label>ট্র্যাকিং পদ্ধতি</label>
+    <div class="toggle-pair">
+      <button class="toggle-opt active" data-tracktype="boolean">✓ হ্যাঁ / না</button>
+      <button class="toggle-opt" data-tracktype="count">📊 সংখ্যাগত গণনা</button>
+    </div>
+
+    <div id="count-fields" hidden>
+      <label>লক্ষ্যমাত্রা (সংখ্যা)</label>
+      <input type="number" id="custom-goal-target" min="1" placeholder="যেমনঃ ৩০" />
+      <label>একক</label>
+      <input type="text" id="custom-goal-unit" placeholder="যেমনঃ মিনিট" />
+    </div>
+
+    <label>ফ্রিকোয়েন্সি</label>
+    <select id="custom-goal-frequency">
+      <option value="daily">প্রতিদিন</option>
+      <option value="3xweek">সপ্তাহে ৩ দিন</option>
+      <option value="1xweek">সপ্তাহে ১ দিন</option>
+    </select>
+
+    <p class="error-text" id="goal-modal-error" hidden></p>
+
+    <div class="modal-actions">
+      <button id="goal-modal-cancel" class="btn-secondary">বাতিল</button>
+      <button id="goal-modal-save" class="btn-primary">যোগ করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TAP-TO-LOG POPUP ============ -->
+<div id="log-popup" class="modal-overlay" hidden>
+  <div class="modal-sheet small">
+    <div class="modal-handle"></div>
+    <div class="log-popup-header">
+      <span id="log-popup-icon" class="log-popup-icon"></span>
+      <h2 id="log-popup-title">লক্ষ্য</h2>
+    </div>
+
+    <div id="log-popup-boolean" hidden>
+      <button id="log-popup-toggle-btn" class="complete-toggle-btn">
+        <span id="log-popup-toggle-icon">○</span>
+        <span id="log-popup-toggle-text">সম্পন্ন হিসেবে চিহ্নিত করুন</span>
+      </button>
+    </div>
+
+    <div id="log-popup-count" hidden>
+      <label id="log-popup-count-label">পরিমাণ</label>
+      <div class="stepper-row">
+        <button id="log-popup-minus" class="stepper-btn">−</button>
+        <input type="number" id="log-popup-value" />
+        <button id="log-popup-plus" class="stepper-btn">+</button>
+      </div>
+      <div class="log-popup-target-text" id="log-popup-target-text"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="log-popup-cancel" class="btn-secondary">বাতিল</button>
+      <button id="log-popup-save" class="btn-primary">সংরক্ষণ করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ STREAK CELEBRATION ============ -->
+<div id="streak-modal" class="modal-overlay" hidden>
+  <div class="modal-sheet celebration">
+    <div id="streak-flame" class="celebration-flame">🔥</div>
+    <h2 id="streak-modal-title">১ দিনের ধারা</h2>
+    <p class="muted">একসাথে ধারা বজায় রাখুন!</p>
+    <button id="streak-modal-close" class="btn-primary">এগিয়ে চলুন</button>
+  </div>
+</div>
+
+<script type="module" src="firebase-config.js"></script>
+<script type="module" src="utils.js"></script>
+<script type="module" src="state.js"></script>
+<script type="module" src="data.js"></script>
+<script type="module" src="widgets.js"></script>
+<script type="module" src="insights.js"></script>
+<script type="module" src="modals.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
