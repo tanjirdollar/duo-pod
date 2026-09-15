@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>একসাথে | Duo Pod - পার্টনার হ্যাবিট ট্র্যাকার</title>
+  
+  <!-- Apple Web App Metas -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="একসাথে" />
+  <link rel="apple-touch-icon" href="https://assets.codepen.io/t-1/apple-touch-icon.png" />
+  
+  <!-- Google Fonts: Hind Siliguri (Bengali) + Outfit (Modern Rounded Digits) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app-container">
+
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand-title">
+          <span class="live-dot" id="sync-indicator" title="রিয়েল-টাইম সংযোগ সক্রিয়"></span>
+          <h1>একসাথে</h1>
+        </div>
+        <p class="current-date" id="display-date">আজকের আপডেট</p>
+      </div>
+
+      <div class="header-right">
+        <button class="streak-pill" id="streak-badge-btn" aria-label="বর্তমান ধারা">
+          <span class="flame-icon">🔥</span>
+          <span id="header-streak-count">০ দিন</span>
+        </button>
+
+        <button class="icon-btn" id="open-settings-btn" title="সেটিংস ও পড">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Partner Status Bar -->
+    <section class="pod-partners-bar">
+      <div class="partner-tag me">
+        <span class="partner-bullet me-bullet"></span>
+        <span class="partner-name" id="label-user-name">আমি</span>
+      </div>
+      <div class="partner-sync-indicator">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+      </div>
+      <div class="partner-tag them">
+        <span class="partner-bullet them-bullet"></span>
+        <span class="partner-name" id="label-partner-name">পার্টনার (যুক্ত হননি)</span>
+      </div>
+    </section>
+
+    <!-- Main Views Container -->
+    <main class="main-content">
+      
+      <!-- SCREEN A: DASHBOARD VIEW (একসাথে) -->
+      <div id="view-dashboard" class="screen-view active-view">
+        
+        <!-- Top Overall Progress Ring Card -->
+        <div class="ios-card summary-card">
+          <div class="summary-left">
+            <h2 class="card-title">আজকের সার্বিক লক্ষ্য</h2>
+            <p class="summary-subtitle" id="summary-progress-text">আজকের যৌথ লক্ষ্য পূরণ: <strong id="summary-percentage">০%</strong></p>
+            <div class="summary-mini-stats">
+              <span class="stat-pill"><i class="dot me-bullet"></i> আমার লক্ষ্য: <b id="summary-me-count">০/০</b></span>
+              <span class="stat-pill"><i class="dot them-bullet"></i> পার্টনারের লক্ষ্য: <b id="summary-them-count">০/০</b></span>
+            </div>
+          </div>
+          <div class="summary-right">
+            <div class="circular-progress-wrap">
+              <svg class="summary-arc-svg" viewBox="0 0 120 120">
+                <circle class="arc-bg" cx="60" cy="60" r="50"></circle>
+                <circle class="arc-fill" id="summary-arc-fill" cx="60" cy="60" r="50"></circle>
+              </svg>
+              <div class="arc-inner-label">
+                <span class="arc-inner-val" id="summary-arc-val">০%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2-Column Responsive Widget Grid -->
+        <section class="widget-grid" id="widgets-container">
+          <!-- Dynamically populated widgets injected via JS -->
+        </section>
+
+        <!-- Floating Add Habit Button -->
+        <button class="fab-button" id="open-add-goal-btn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>নতুন লক্ষ্য যোগ করুন</span>
+        </button>
+      </div>
+
+      <!-- SCREEN B: INSIGHTS VIEW (ইনসাইটস) -->
+      <div id="view-insights" class="screen-view">
+        <div class="ios-card pod-health-card">
+          <div class="card-header">
+            <h2 class="card-title">পড হেলথ স্কোর (Pod Health)</h2>
+            <span class="badge-pill">সক্রিয় মেট্রিক্স</span>
+          </div>
+
+          <!-- Speedometer Canvas -->
+          <div class="canvas-container">
+            <canvas id="speedometer-canvas" width="300" height="170"></canvas>
+            <div class="speedometer-details">
+              <span class="speedo-number" id="speedo-score-val">৮৬</span>
+              <span class="speedo-status" id="speedo-status-text">চমৎকার / THRIVING</span>
+            </div>
+          </div>
+          <p class="card-footnote">উভয় পার্টনারের গত ৭ দিনের ধারাবাহিকতা এবং সিঙ্কের উপর ভিত্তি করে পরিমাপকৃত।</p>
+        </div>
+
+        <!-- 3 Stat Badges -->
+        <div class="stat-tri-grid">
+          <div class="stat-badge-card">
+            <div class="stat-icon-wrap gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-num" id="stat-best-streak">০ দিন</span>
+              <span class="stat-title">সর্বোচ্চ ধারা</span>
+            </div>
+          </div>
+
+          <div class="stat-badge-card">
+            <div class="stat-icon-wrap teal"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+            <div class="stat-info">
+              <span class="stat-num" id="stat-days-together">১ দিন</span>
+              <span class="stat-title">একসাথে যাত্রা</span>
+            </div>
+          </div>
+
+          <div class="stat-badge-card">
+            <div class="stat-icon-wrap flame"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-num" id="stat-current-streak">০ দিন</span>
+              <span class="stat-title">বর্তমান ধারা</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Days in Sync (7-Day split dots) -->
+        <div class="ios-card sync-week-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">এই সপ্তাহের সিঙ্ক (Days in Sync)</h2>
+              <p class="card-subtext">উভয় পার্টনারের লক্ষ্য পূরণ হলে বৃত্তটি সম্পূর্ণ জ্বলে ওঠে</p>
+            </div>
+          </div>
+
+          <div class="weekdays-strip" id="weekdays-strip">
+            <!-- Populated via widgets.js -->
+          </div>
+
+          <div class="week-legend">
+            <span class="legend-item"><span class="legend-dot coral"></span> আমার সম্পন্ন</span>
+            <span class="legend-item"><span class="legend-dot cyan"></span> পার্টনারের সম্পন্ন</span>
+            <span class="legend-item"><span class="legend-dot full-sync"></span> পূর্ণ সিঙ্ক (দুজনেই)</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Tab Bar -->
+    <nav class="bottom-tab-bar">
+      <button class="tab-item active" data-view="dashboard">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect></svg>
+        <span>একসাথে</span>
+      </button>
+      <button class="tab-item" data-view="insights">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+        <span>ইনসাইটস</span>
+      </button>
+    </nav>
+
+    <!-- MODAL 1: ADD HABIT GOAL -->
+    <div class="modal-backdrop" id="add-goal-modal">
+      <div class="modal-sheet">
+        <div class="sheet-grabber"></div>
+        <div class="modal-header">
+          <h3>নতুন লক্ষ্য তৈরি করুন</h3>
+          <button class="modal-close-btn" data-close="add-goal-modal">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="section-label">প্রিসেট হ্যাবিট বেছে নিন</p>
+          <div class="presets-scroll-grid">
+            <button class="preset-chip active" data-preset="steps" data-name="হাঁটা" data-type="number" data-target="10000" data-unit="কদম">
+              <span class="chip-emoji">👟</span> হাঁটা (Steps)
+            </button>
+            <button class="preset-chip" data-preset="sleep" data-name="পর্যাপ্ত ঘুম" data-type="number" data-target="8" data-unit="ঘণ্টা">
+              <span class="chip-emoji">🌙</span> ঘুম (Sleep)
+            </button>
+            <button class="preset-chip" data-preset="water" data-name="পানি পান" data-type="number" data-target="8" data-unit="গ্লাস">
+              <span class="chip-emoji">💧</span> পানি (Water)
+            </button>
+            <button class="preset-chip" data-preset="workout" data-name="ব্যায়াম" data-type="number" data-target="45" data-unit="মিনিট">
+              <span class="chip-emoji">⚡</span> ব্যায়াম (Workout)
+            </button>
+            <button class="preset-chip" data-preset="reading" data-name="বই পড়া" data-type="number" data-target="20" data-unit="পৃষ্ঠা">
+              <span class="chip-emoji">📖</span> বই পড়া (Reading)
+            </button>
+            <button class="preset-chip" data-preset="vitamins" data-name="ভিটামিন ও ওষুধ" data-type="boolean" data-target="1" data-unit="বার">
+              <span class="chip-emoji">💊</span> ভিটামিন (Vitamins)
+            </button>
+            <button class="preset-chip" data-preset="meditation" data-name="মেডিটেশন" data-type="number" data-target="15" data-unit="মিনিট">
+              <span class="chip-emoji">🧘</span> মেডিটেশন (Calm)
+            </button>
+            <button class="preset-chip" data-preset="weight" data-name="ওজন পর্যবেক্ষণ" data-type="number" data-target="65" data-unit="কেজি">
+              <span class="chip-emoji">⚖️</span> ওজন (Weight)
+            </button>
+          </div>
+
+          <form id="create-goal-form" class="goal-form">
+            <div class="form-group">
+              <label for="goal-name">লক্ষ্যের নাম</label>
+              <input type="text" id="goal-name" required value="হাঁটা" placeholder="যেমন: সকালে হাঁটা" />
+            </div>
+
+            <div class="form-group">
+              <label>ট্র্যাকিংয়ের ধরণ</label>
+              <div class="segmented-control">
+                <input type="radio" name="tracking-type" id="type-boolean" value="boolean" />
+                <label for="type-boolean">✓ হ্যাঁ / না সম্পন্ন</label>
+                <input type="radio" name="tracking-type" id="type-number" value="number" checked />
+                <label for="type-number">📊 সংখ্যাগত গণনা</label>
+              </div>
+            </div>
+
+            <div class="form-row-2" id="numeric-fields-row">
+              <div class="form-group">
+                <label for="goal-target">দৈনিক টার্গেট</label>
+                <input type="number" id="goal-target" min="1" value="10000" />
+              </div>
+              <div class="form-group">
+                <label for="goal-unit">একক (Unit)</label>
+                <input type="text" id="goal-unit" value="কদম" placeholder="যেমন: কদম, গ্লাস, মিনিট" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="goal-frequency">পুনরাবৃত্তি</label>
+              <select id="goal-frequency" class="ios-select">
+                <option value="daily">প্রতিদিন (Daily)</option>
+                <option value="weekdays">সপ্তাহে ৩ দিন (3 Days/Week)</option>
+                <option value="weekly">সপ্তাহে ১ দিন (1 Day/Week)</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-primary-block">লক্ষ্যটি যুক্ত করুন</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 2: LOG VALUE PROMPT -->
+    <div class="modal-backdrop" id="log-input-modal">
+      <div class="modal-sheet modal-sheet-sm">
+        <div class="sheet-grabber"></div>
+        <div class="modal-header">
+          <h3 id="log-modal-title">অগ্রগতি আপডেট করুন</h3>
+          <button class="modal-close-btn" data-close="log-input-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="quick-adjust-display">
+            <span class="quick-value" id="log-value-preview">০</span>
+            <span class="quick-unit" id="log-unit-preview">কদম</span>
+          </div>
+          <div class="quick-adjust-actions">
+            <button class="btn-adjust" id="btn-dec-val">-</button>
+            <input type="number" id="log-direct-input" class="direct-num-input" />
+            <button class="btn-adjust" id="btn-inc-val">+</button>
+          </div>
+          <button class="btn-primary-block" id="btn-save-log">সংরক্ষণ করুন</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: STREAK CELEBRATION -->
+    <div class="modal-backdrop streak-celebration-backdrop" id="celebration-modal">
+      <div class="celebration-card animate-pop">
+        <div class="celebration-flame-burst">
+          <span class="huge-flame">🔥</span>
+        </div>
+        <h2 class="celebration-title" id="celeb-days-text">১২ দিনের ধারা!</h2>
+        <p class="celebration-desc">চমৎকার সিঙ্ক! আপনারা দুজন একসাথে লক্ষ্য পূরণ করে নতুন মাইলফলকে পৌঁছেছেন। ধারা বজায় রাখুন!</p>
+        <button class="btn-primary-block" id="celeb-close-btn">এগিয়ে চলুন</button>
+      </div>
+    </div>
+
+    <!-- MODAL 4: SETTINGS & POD PAIRING -->
+    <div class="modal-backdrop" id="settings-modal">
+      <div class="modal-sheet">
+        <div class="sheet-grabber"></div>
+        <div class="modal-header">
+          <h3>পড ও অ্যাপ সেটিংস</h3>
+          <button class="modal-close-btn" data-close="settings-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <!-- Firebase Connect Status Card -->
+          <div class="settings-card">
+            <div class="settings-card-header">
+              <span class="settings-icon">🔥</span>
+              <div>
+                <h4>ফায়ারবেস ক্লাউড সংযোগ</h4>
+                <p class="card-subtext" id="firebase-status-label">লোকাল ডেমো মোডে চলছে</p>
+              </div>
+            </div>
+            <button class="btn-secondary-sm" id="btn-open-fb-config">কনফিগ কনফিগার করুন</button>
+          </div>
+
+          <!-- Duo Pod Pairing Card -->
+          <div class="settings-card">
+            <h4>পার্টনার পড কানেকশন (Duo Pod)</h4>
+            <p class="card-subtext">আপনার পার্টনারের সাথে লাইভ কানেক্ট হতে নিজের কোড দিন অথবা পার্টনারের কোড লিখুন।</p>
+            
+            <div class="invite-code-box">
+              <label>আপনার ৬-সংখ্যার পড কোড</label>
+              <div class="code-copy-row">
+                <span class="invite-code-text" id="my-invite-code">D-74921</span>
+                <button class="btn-copy" id="btn-copy-code">কপি করুন</button>
+              </div>
+            </div>
+
+            <div class="connect-partner-box">
+              <label for="partner-input-code">পার্টনারের পড কোড লিখুন</label>
+              <div class="partner-input-row">
+                <input type="text" id="partner-input-code" placeholder="যেমন: D-88231" maxlength="10" />
+                <button class="btn-primary-sm" id="btn-pair-partner">কানেক্ট</button>
+              </div>
+            </div>
+
+            <div class="paired-status-panel" id="paired-status-container" style="display:none;">
+              <span class="paired-indicator">✓</span>
+              <span>সংযুক্ত আছেন: <strong id="connected-partner-name">পার্টনার</strong></span>
+              <button class="btn-text-danger" id="btn-leave-pod">পড থেকে বিচ্ছিন্ন হন</button>
+            </div>
+          </div>
+
+          <!-- User Details -->
+          <div class="settings-card">
+            <h4>আপনার তথ্য</h4>
+            <div class="form-group" style="margin-top:10px;">
+              <label for="user-display-name-input">আপনার নাম</label>
+              <input type="text" id="user-display-name-input" value="আমি" />
+            </div>
+            <button class="btn-secondary-sm" id="btn-save-profile">নাম আপডেট করুন</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 5: FIREBASE SETUP (Onboarding / Config Entry) -->
+    <div class="modal-backdrop" id="firebase-config-modal">
+      <div class="modal-sheet">
+        <div class="sheet-grabber"></div>
+        <div class="modal-header">
+          <h3>ফায়ারবেস (Firebase) কনফিগারেশন</h3>
+          <button class="modal-close-btn" data-close="firebase-config-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="card-subtext">
+            গুগল ফায়ারবেসের মাধ্যমে তাৎক্ষণিক ২-মুখী লাইভ সিঙ্ক সক্রিয় করতে আপনার কনফিগারেশন JSON পেস্ট করুন।
+          </p>
+          <textarea id="firebase-config-json" rows="8" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "your-app.firebaseapp.com",
+  "projectId": "your-app",
+  "storageBucket": "your-app.appspot.com",
+  "messagingSenderId": "...",
+  "appId": "..."
+}'></textarea>
+          <div class="firebase-modal-actions">
+            <button class="btn-primary-block" id="btn-save-fb-config">সংরক্ষণ ও সংযোগ করুন</button>
+            <button class="btn-secondary-block" id="btn-use-mock-mode">ডেমো মোডে চালিয়ে যান</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Banner -->
+    <div id="toast-banner" class="toast-banner">বার্তা</div>
+
+  </div>
+
+  <!-- Scripts: Modular Architecture via Native ES Modules -->
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="widgets.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
