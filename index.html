@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ডুও পড — একসাথে অভ্যাস গড়ুন</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+<style>
+  /* প্রয়োজনীয় বেসিক ফিক্স */
+  .auth-form { display: flex; flex-direction: column; }
+  .error-text { color: #E0304A; font-size: 13px; margin: 8px 0; }
+  #app-shell[hidden], #auth-screen[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="auth-screen" class="overlay-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="brand-dot coral"></span><span class="brand-dot cyan"></span>
+      <h1>ডুও পড</h1>
+    </div>
+    <p class="muted">একসাথে অভ্যাস গড়ুন, একসাথে এগিয়ে যান।</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login-btn">লগ ইন</button>
+      <button class="auth-tab" id="tab-signup-btn">নতুন অ্যাকাউন্ট</button>
+    </div>
+
+    <form id="login-form" class="auth-form">
+      <label>ইমেইল</label>
+      <input type="email" id="login-email" required autocomplete="email" />
+      <label>পাসওয়ার্ড</label>
+      <input type="password" id="login-password" required autocomplete="current-password" />
+      <p class="error-text" id="login-error" style="display:none;"></p>
+      <button type="submit" class="btn-primary">লগ ইন করুন</button>
+    </form>
+
+    <form id="signup-form" class="auth-form" style="display:none;">
+      <label>আপনার নাম</label>
+      <input type="text" id="signup-name" required autocomplete="name" />
+      <label>ইমেইল</label>
+      <input type="email" id="signup-email" required autocomplete="email" />
+      <label>পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)</label>
+      <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
+      <p class="error-text" id="signup-error" style="display:none;"></p>
+      <button type="submit" class="btn-primary">অ্যাকাউন্ট তৈরি করুন</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MAIN APP SHELL ============ -->
+<div id="app-shell" hidden>
+  <header id="app-header">
+    <div class="header-left">
+      <span id="sync-dot" class="sync-dot"></span>
+      <div class="streak-badge"><span class="flame">🔥</span> <span id="streak-text">০ দিন</span></div>
+    </div>
+    <div class="header-title">একসাথে</div>
+    <button id="logout-btn-top" class="icon-btn" title="লগ আউট">🚪</button>
+  </header>
+
+  <main id="main-content">
+    <div class="card arc-card">
+      <h2 id="welcome-user">স্বাগতম!</h2>
+      <p class="muted" id="user-email-display" style="margin-top: 4px;"></p>
+      <div class="pod-legend" style="margin-top: 15px;">
+        <span class="legend-item"><i class="dot coral"></i><span id="display-my-name">আমি</span></span>
+        <span class="legend-item"><i class="dot cyan"></i><span id="display-partner-name">পার্টনার (অপেক্ষমাণ)</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="settings-row-title">পার্টনার সংযোগ</div>
+      <div id="invite-box">
+        <p class="muted" style="margin-bottom: 8px;">আপনার পার্টনার কোড:</p>
+        <div style="font-size: 24px; font-weight: bold; background: #F0F0EC; padding: 10px; border-radius: 12px; text-align: center;" id="my-invite-code">লোড হচ্ছে...</div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <p class="muted" style="margin-bottom: 8px;">পার্টনারের কোড দিয়ে যুক্ত হন:</p>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="join-code-input" placeholder="৬ সংখ্যার কোড" style="margin: 0;" />
+          <button class="btn-secondary small" id="join-pod-btn">যুক্ত হন</button>
+        </div>
+        <p class="error-text" id="join-error" style="display:none;"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="margin: 0;">দৈনন্দিন লক্ষ্যসমূহ</h3>
+        <button id="add-habit-btn" class="btn-secondary small">+ নতুন লক্ষ্য</button>
+      </div>
+      <div id="habit-list" style="display: flex; flex-direction: column; gap: 10px;">
+        <p class="muted" id="empty-habits">কোনো লক্ষ্য যোগ করা হয়নি।</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Firebase Modular SDK via CDN -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged, 
+    signOut 
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    updateDoc, 
+    collection, 
+    addDoc, 
+    query, 
+    where, 
+    getDocs, 
+    onSnapshot,
+    serverTimestamp 
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // আপনার আসল Firebase কনফিগ সরাসরি এখানে বসান
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxx",
+    authDomain: "habit-tracker-931a6-ff2dc.firebaseapp.com",
+    projectId: "habit-tracker-931a6-ff2dc",
+    storageBucket: "habit-tracker-931a6-ff2dc.appspot.com",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  // Firebase Initialize
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // DOM Elements
+  const authScreen = document.getElementById("auth-screen");
+  const appShell = document.getElementById("app-shell");
+  const tabLoginBtn = document.getElementById("tab-login-btn");
+  const tabSignupBtn = document.getElementById("tab-signup-btn");
+  const loginForm = document.getElementById("login-form");
+  const signupForm = document.getElementById("signup-form");
+  const loginError = document.getElementById("login-error");
+  const signupError = document.getElementById("signup-error");
+
+  // Tab switching
+  tabLoginBtn.addEventListener("click", () => {
+    tabLoginBtn.classList.add("active");
+    tabSignupBtn.classList.remove("active");
+    loginForm.style.display = "flex";
+    signupForm.style.display = "none";
+  });
+
+  tabSignupBtn.addEventListener("click", () => {
+    tabSignupBtn.classList.add("active");
+    tabLoginBtn.classList.remove("active");
+    signupForm.style.display = "flex";
+    loginForm.style.display = "none";
+  });
+
+  // Handle Signup
+  signupForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    signupError.style.display = "none";
+    const name = document.getElementById("signup-name").value.trim();
+    const email = document.getElementById("signup-email").value.trim();
+    const pass = document.getElementById("signup-password").value;
+
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      const inviteCode = String(Math.floor(100000 + Math.random() * 900000));
+      
+      // Pod তৈরি
+      const podRef = await addDoc(collection(db, "pods"), {
+        memberIds: [cred.user.uid],
+        memberNames: { [cred.user.uid]: name },
+        inviteCode: inviteCode,
+        createdAt: serverTimestamp()
+      });
+
+      // User প্রোফাইল সেভ
+      await setDoc(doc(db, "users", cred.user.uid), {
+        name: name,
+        email: email,
+        podId: podRef.id
+      });
+    } catch (err) {
+      signupError.innerText = err.message;
+      signupError.style.display = "block";
+    }
+  });
+
+  // Handle Login
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    loginError.style.display = "none";
+    const email = document.getElementById("login-email").value.trim();
+    const pass = document.getElementById("login-password").value;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (err) {
+      loginError.innerText = err.message;
+      loginError.style.display = "block";
+    }
+  });
+
+  // Handle Logout
+  document.getElementById("logout-btn-top").addEventListener("click", () => signOut(auth));
+
+  // Auth State Listener
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      authScreen.hidden = true;
+      appShell.hidden = false;
+      document.getElementById("user-email-display").innerText = user.email;
+
+      // প্রোফাইল ও পড লোড
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const uData = userDoc.data();
+        document.getElementById("welcome-user").innerText = `স্বাগতম, ${uData.name}!`;
+        document.getElementById("display-my-name").innerText = uData.name;
+
+        // পড সিঙ্ক
+        if (uData.podId) {
+          onSnapshot(doc(db, "pods", uData.podId), (pSnap) => {
+            if (pSnap.exists()) {
+              const pod = pSnap.data();
+              document.getElementById("my-invite-code").innerText = pod.inviteCode || "N/A";
+              const partnerUid = (pod.memberIds || []).find(id => id !== user.uid);
+              if (partnerUid) {
+                document.getElementById("display-partner-name").innerText = pod.memberNames?.[partnerUid] || "পার্টনার";
+                document.getElementById("invite-box").style.display = "none";
+              }
+            }
+          });
+        }
+      }
+    } else {
+      authScreen.hidden = false;
+      appShell.hidden = true;
+    }
+  });
+
+  // Join Pod
+  document.getElementById("join-pod-btn").addEventListener("click", async () => {
+    const code = document.getElementById("join-code-input").value.trim();
+    const joinErr = document.getElementById("join-error");
+    joinErr.style.display = "none";
+
+    if (!code) return;
+    try {
+      const q = query(collection(db, "pods"), where("inviteCode", "==", code));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        joinErr.innerText = "ভুল কোড!";
+        joinErr.style.display = "block";
+        return;
+      }
+      const targetPod = snap.docs[0];
+      const user = auth.currentUser;
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+
+      await updateDoc(doc(db, "pods", targetPod.id), {
+        memberIds: [...targetPod.data().memberIds, user.uid],
+        [`memberNames.${user.uid}`]: userDoc.data().name
+      });
+      await updateDoc(doc(db, "users", user.uid), { podId: targetPod.id });
+      location.reload();
+    } catch (e) {
+      joinErr.innerText = e.message;
+      joinErr.style.display = "block";
+    }
+  });
+</script>
+</body>
+</html>
